@@ -33,7 +33,7 @@ public:
   int length() const { return static_cast<int>(cur_ - data_); }
   char*current() { return cur_; }
   int avail() const { return static_cast<int>(end() - cur_); }
-  char* reserve(int len) const {
+  char* reserve(int len) {
     if (avail() > len) {
       return cur_;
     } else {
@@ -66,7 +66,7 @@ public:
   const char* c_str() const { return buffer_.c_str(); }
   const char* data() const { return buffer_.data(); }
   int length() const { return buffer_.length(); }
-  char* reserve(int len) const { return buffer_.reserve(len); }
+  char* reserve(int len) { return buffer_.reserve(len); }
   void commit(int len) { buffer_.commit(len); }
   void append(const char* data, int len) { buffer_.append(data, len); }
   Buffer& buffer() { return buffer_; }
