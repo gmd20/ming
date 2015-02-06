@@ -18,9 +18,9 @@ public:
   {
   }
 
-  void append(const char* buf, size_t len)
+  void append(const char* buf, int len)
   {
-    if (static_cast<size_t>(avail()) > len) {
+    if (avail() > len) {
       memcpy(cur_, buf, len);
       cur_ += len;
       return;
@@ -55,6 +55,16 @@ private:
 };
 
 
+
+
+template<typename T>
+int format_int(char buf[], T value);
+int format_pointer_hex(char buf[], void * value);
+int format_double(char buf[], double value);
+
+
+
+const int kMaxNumericSize = 32;
 const int kLogStreamDefaultBufferSize = 1024 * 4;
 template<int SIZE = kLogStreamDefaultBufferSize>
 class LogStream
@@ -67,7 +77,7 @@ public:
   const char* data() const { return buffer_.data(); }
   int length() const { return buffer_.length(); }
   char* reserve(int len) { return buffer_.reserve(len); }
-  void commit(int len) { buffer_.commit(len); }
+  void commit(int len) { buffer_.commit(len);}
   void append(const char* data, int len) { buffer_.append(data, len); }
   Buffer& buffer() { return buffer_; }
   void reset() { buffer_.reset();}
@@ -99,26 +109,92 @@ public:
     return *this;
   }
 
-  LogStream & operator<< (short);
-  LogStream & operator<< (unsigned short);
-  LogStream & operator<< (int);
-  LogStream & operator<< (unsigned int);
-  LogStream & operator<< (long);
-  LogStream & operator<< (unsigned long);
-  LogStream & operator<< (long long);
-  LogStream & operator<< (unsigned long long);
-  LogStream & operator<< (const void*);
+  LogStream & operator<<(short v)
+  {
+    *this << static_cast<int>(v);
+    return *this;
+  }
+
+  LogStream & operator<<(unsigned short v)
+  {
+    *this << static_cast<unsigned int>(v);
+    return *this;
+  }
+
+  LogStream & operator<<(int v)
+  {
+    format_integer(v);
+    return *this;
+  }
+
+  LogStream & operator<<(unsigned int v)
+  {
+    format_integer(v);
+    return *this;
+  }
+
+  LogStream & operator<<(long v)
+  {
+    format_integer(v);
+    return *this;
+  }
+
+  LogStream & operator<<(unsigned long v)
+  {
+    format_integer(v);
+    return *this;
+  }
+
+  LogStream & operator<<(long long v)
+  {
+    format_integer(v);
+    return *this;
+  }
+
+  LogStream & operator<<(unsigned long long v)
+  {
+    format_integer(v);
+    return *this;
+  }
+
+  LogStream & operator<<(const void* p)
+  {
+    char *buf = buffer_.reserve(kMaxNumericSize);
+    if (buf == 0) {return *this;}
+
+    buf[0] = '0';
+    buf[1] = 'x';
+    int len = format_pointer_hex(buf+2, p);
+    buffer_.commit(len+2);
+    return *this;
+  }
+
+  LogStream & operator<<(double v)
+  {
+    char *buf = buffer_.reserve(kMaxNumericSize);
+    if (buf == 0) {return;}
+
+    int len = format_double(buf, v);
+    buffer_.commit(len);
+    return *this;
+  }
 
   LogStream & operator<< (float v)
   {
     *this << static_cast<double>(v);
     return *this;
   }
-  LogStream & operator<< (double);
 
 private:
   template<typename T>
-    void format_integer(T);
+  void format_integer(T v)
+  {
+    char *buf = buffer_.reserve(kMaxNumericSize);
+    if (buf == 0) {return;}
+
+    int len = format_int(buf, v);
+    buffer_.commit(len);
+  }
 
 private:
   Buffer buffer_;
@@ -127,6 +203,8 @@ private:
 #define LOGSTREAM_APPEND_CONST_STRING(stream, const_str) \
   {stream.append((const_str ""), sizeof(const_str ""));}
 
-}  //namespace ming
+
+
+} // namespace ming
 
 #endif   // MING_LOGSTREAM_H_

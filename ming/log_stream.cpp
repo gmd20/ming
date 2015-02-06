@@ -1,20 +1,19 @@
-#include "ming/log_stream.h"
+#include  "ming/log_stream.h"
 
-#include <algorithm>
 #include <limits>
-#include <assert.h>
 #include <stdio.h>
+#include <stdint.h>
+#include <algorithm>
+
 
 namespace ming {
 
-static const int kMaxNumericSize = 32;
 static const char digits[] = "9876543210123456789";
 static const char* zero = digits + 9;
 static const char digits_hex[] = "0123456789ABCDEF";
 
-// Efficient Integer to String Conversions, by Matthew Wilson.
-  template<typename T>
-size_t convert(char buf[], T value)
+template<typename T>
+int format_int(char buf[], T value)
 {
   T i = value;
   char* p = buf;
@@ -34,11 +33,23 @@ size_t convert(char buf[], T value)
   return p - buf;
 }
 
-size_t convert_hex(char buf[], uintptr_t value)
-{
-  uintptr_t i = value;
-  char* p = buf;
+// Explicit Instantiation
+template int format_int(char buf[], char value);
+template int format_int(char buf[], unsigned char value);
+template int format_int(char buf[], short value);
+template int format_int(char buf[], unsigned short value);
+template int format_int(char buf[], int value);
+template int format_int(char buf[], unsigned int value);
+template int format_int(char buf[], long value);
+template int format_int(char buf[], unsigned long value);
+template int format_int(char buf[], long long  value);
+template int format_int(char buf[], unsigned long long value);
 
+
+int format_pointer_hex(char buf[], void * value)
+{
+  uintptr_t i = reinterpret_cast<uintptr_t>(value);
+  char* p = buf;
   do {
     int lsd = i % 16;
     i /= 16;
@@ -50,100 +61,11 @@ size_t convert_hex(char buf[], uintptr_t value)
 
   return p - buf;
 }
-template<int SIZE>
-template<typename T>
-void LogStream<SIZE>::format_integer(T v)
+
+int format_double(char buf[], double value)
 {
-  char *buf = buffer_.reserve(kMaxNumericSize);
-  if (buf == 0) {return;}
-
-  size_t len = convert(buf, v);
-  buffer_.commit(len);
+  return sprintf(buf, "%.12g", value);
 }
-
-template<int SIZE>
-LogStream<SIZE>& LogStream<SIZE>::operator<<(short v)
-{
-  *this << static_cast<int>(v);
-  return *this;
-}
-
-template<int SIZE>
-LogStream<SIZE>& LogStream<SIZE>::operator<<(unsigned short v)
-{
-  *this << static_cast<unsigned int>(v);
-  return *this;
-}
-
-template<int SIZE>
-LogStream<SIZE>& LogStream<SIZE>::operator<<(int v)
-{
-  format_integer(v);
-  return *this;
-}
-
-template<int SIZE>
-LogStream<SIZE>& LogStream<SIZE>::operator<<(unsigned int v)
-{
-  format_integer(v);
-  return *this;
-}
-
-template<int SIZE>
-LogStream<SIZE>& LogStream<SIZE>::operator<<(long v)
-{
-  format_integer(v);
-  return *this;
-}
-
-template<int SIZE>
-LogStream<SIZE>& LogStream<SIZE>::operator<<(unsigned long v)
-{
-  format_integer(v);
-  return *this;
-}
-
-template<int SIZE>
-LogStream<SIZE>& LogStream<SIZE>::operator<<(long long v)
-{
-  format_integer(v);
-  return *this;
-}
-
-template<int SIZE>
-LogStream<SIZE>& LogStream<SIZE>::operator<<(unsigned long long v)
-{
-  format_integer(v);
-  return *this;
-}
-
-template<int SIZE>
-LogStream<SIZE>& LogStream<SIZE>::operator<<(const void* p)
-{
-  uintptr_t v = reinterpret_cast<uintptr_t>(p);
-  char *buf = buffer_.reserve(kMaxNumericSize);
-  if (buf == 0) {return *this;}
-
-  buf[0] = '0';
-  buf[1] = 'x';
-  size_t len = convert_hex(buf+2, v);
-  buffer_.commit(len+2);
-  return *this;
-}
-
-// FIXME: replace this with Grisu3 by Florian Loitsch.
-template<int SIZE>
-LogStream<SIZE>& LogStream<SIZE>::operator<<(double v)
-{
-  if (buffer_.avail() >= kMaxNumericSize) {
-    int len = _snprintf(buffer_.current(), kMaxNumericSize, "%.12g", v);
-    buffer_.add(len);
-  }
-  return *this;
-}
-
-
-
 
 
 } // namespace ming
