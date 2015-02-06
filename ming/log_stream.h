@@ -201,9 +201,11 @@ private:
 };
 
 #define LOGSTREAM_APPEND_CONST_STRING(stream, const_str) \
-  {stream.append((const_str ""), sizeof(const_str ""));}
-
-
+  {                                                      \
+    const char * warn_if_not_a_const_str = const_str ""; \
+    warn_if_not_a_const_str = warn_if_not_a_const_str;   \
+    stream.append((const_str), sizeof(const_str) - 1);   \
+  }
 
 } // namespace ming
 
