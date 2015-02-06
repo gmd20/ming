@@ -67,7 +67,7 @@ public:
   const char* data() const { return buffer_.data(); }
   int length() const { return buffer_.length(); }
   char* reserve(int len) const { return buffer_.reserve(len); }
-  void commit(int len) { buffer_.commit();}
+  void commit(int len) { buffer_.commit(len); }
   void append(const char* data, int len) { buffer_.append(data, len); }
   Buffer& buffer() { return buffer_; }
   void reset() { buffer_.reset();}
