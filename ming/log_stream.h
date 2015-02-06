@@ -125,8 +125,7 @@ private:
 };
 
 #define LOGSTREAM_APPEND_CONST_STRING(stream, const_str) \
-  {const char * str = " " const_str " "; stream.append((const_str), sizeof(const_str));}
-
+  {stream.append((const_str ""), sizeof(const_str ""));}
 
 }  //namespace ming
 
