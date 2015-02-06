@@ -33,15 +33,15 @@ public:
   int length() const { return static_cast<int>(cur_ - data_); }
   char*current() { return cur_; }
   int avail() const { return static_cast<int>(end() - cur_); }
-  char* reserve(int size) const {
-    if (avail() > size) {
+  char* reserve(int len) const {
+    if (avail() > len) {
       return cur_;
     } else {
       overflow_ = true;
       return 0;
     }
   }
-  void commit(size_t len) { cur_ += len; }
+  void commit(int len) { cur_ += len; }
   void reset() { cur_ = data_; overflow_ = false; }
   bool overflow() {return overflow_; }
 
@@ -66,6 +66,8 @@ public:
   const char* c_str() const { return buffer_.c_str(); }
   const char* data() const { return buffer_.data(); }
   int length() const { return buffer_.length(); }
+  char* reserve(int len) const { return buffer_.reserve(len); }
+  void commit(int len) { buffer_.commit();}
   void append(const char* data, int len) { buffer_.append(data, len); }
   Buffer& buffer() { return buffer_; }
   void reset() { buffer_.reset();}
