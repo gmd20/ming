@@ -2,10 +2,10 @@
 
 #include <algorithm>
 #include <limits>
+#include <assert.h>
 #include <stdio.h>
 
 namespace ming {
-
 
 static const int kMaxNumericSize = 32;
 static const char digits[] = "9876543210123456789";
