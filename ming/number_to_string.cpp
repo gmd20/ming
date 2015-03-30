@@ -707,6 +707,52 @@ inline int dtoa_milo(double value, char* buffer) {
 
 
 
+// ------------------------------------------------------
+static const char digits[] = "9876543210123456789";
+static const char* zero = digits + 9;
+static const char digits_hex[] = "0123456789ABCDEF";
+
+template<typename T>
+int format_int(char buf[], T value)
+{
+  T i = value;
+  char* p = buf;
+
+  do {
+    int lsd = static_cast<int>(i % 10);
+    i /= 10;
+    *p++ = zero[lsd];
+  } while (i != 0);
+
+  if (value < 0) {
+    *p++ = '-';
+  }
+  *p = '\0';
+  std::reverse(buf, p);
+
+  return p - buf;
+}
+
+// 这个可以使用hex_encode 代替
+int format_pointer_hex(char buf[], void * value)
+{
+  uintptr_t i = reinterpret_cast<uintptr_t>(value);
+  char* p = buf;
+  do {
+    int lsd = i % 16;
+    i /= 16;
+    *p++ = digits_hex[lsd];
+  } while (i != 0);
+
+  *p = '\0';
+  std::reverse(buf, p);
+
+  return p - buf;
+}
+
+
+
+
 namespace ming {
 
 int32_t u32toa(uint32_t value, char* buffer)

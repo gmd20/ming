@@ -4,6 +4,15 @@
 
 #include <stdint.h>
 
+// --------------------------------------------------------------
+// 说明：
+// 1. u32toa_branchlut 性能好于 uint64ToBufferUnsafe
+// 2. 使用但一个内存块重复测试时， format_int 在数字大的时候快于
+//    uint64ToBufferUnsafe。  在数字小时uint64ToBufferUnsafe 比
+//    format_int稍微快一点点
+// 3. 在32位系统还是需要单独定义一个uint32_t的uint64ToBufferUnsafe版本
+// --------------------------------------------------------------
+
 namespace ming {
 
 int32_t u32toa(uint32_t value, char* buffer);
@@ -53,6 +62,7 @@ inline uint32_t digits10(uint64_t v) {
   }
 }
 
+
 /**
  * Copies the ASCII base 10 representation of v into buffer and
  * returns the number of bytes written. Does NOT append a \0. Assumes
@@ -84,7 +94,6 @@ inline uint32_t uint64ToBufferUnsafe(uint64_t v, char *const buffer) {
   buffer[pos] = static_cast<uint32_t>(v) + '0';
   return result;
 }
-
 
 
 //  使用的例子
