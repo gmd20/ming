@@ -1,7 +1,5 @@
 #include "xml_escape.h"
 
-#include <assert.h>
-#include <stdio.h>
 #include <string.h>
 
 namespace ming {
@@ -238,7 +236,7 @@ MATCH_LOOP:
 		if (i > start) {
 			ob.put(&src[start], i - start);
 		}
-		ob.putc(code);
+		ob.putchar(code);
 		i += len;
 		start = i;
 	} else {

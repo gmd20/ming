@@ -1,7 +1,6 @@
 #ifndef XML_ESCAPE_H_
 #define XML_ESCAPE_H_
 
-#include <stdio.h>
 #include <string.h>
 
 namespace ming {
@@ -29,7 +28,7 @@ public:
 		memcpy(extra_buf_ + size_, b, len);
 		size_ += len;
 	}
-	void putc(char c)
+	void putchar(char c)
 	{
 		extra_buf_[size_++] = c;
 	}
