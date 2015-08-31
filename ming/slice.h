@@ -18,6 +18,7 @@ public:
 
 public:
   explicit Slice(char *data, int len):begin(data), cur(data),end(data+len) { }
+  explicit Slice(const Slice &s):begin(s.begin), cur(s.cur),end(s.end) { }
 
   int Len() const
   {
