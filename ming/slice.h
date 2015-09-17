@@ -18,6 +18,7 @@ public:
 
 public:
   explicit Slice(char *data, int len):begin(data), cur(data),end(data+len) { }
+  explicit Slice(char *_begin, char *_end):begin(_begin), cur(_begin),end(_end) { }
   explicit Slice(const Slice &s):begin(s.begin), cur(s.cur),end(s.end) { }
 
   int Len() const
@@ -110,6 +111,30 @@ public:
     } else {
       eof_error = true;
       return 0;
+    }
+  }
+
+  bool WriteUint32(uint32_t v)
+  {
+    uint32_t *i = (uint32_t *)cur;
+    cur += sizeof(uint32_t);
+    if (cur <= end) {
+      *i = v;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool WriteBytes(char *s, int len)
+  {
+    char *b = cur;
+    cur += len;
+    if (cur <= end) {
+      memcpy(b, s, len);
+      return true;
+    } else {
+      return false;
     }
   }
 
