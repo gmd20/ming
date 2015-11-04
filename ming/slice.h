@@ -5,41 +5,34 @@
 namespace ming {
 
 // A wrapper to raw bytes array
-class Slice
-{
-public:
-  enum {
-    SLICE_EOF = -1
-  };
+class Slice {
+ public:
+  enum { SLICE_EOF = -1 };
 
   char *begin;
   char *cur;
   char *end;
 
-public:
-  explicit Slice(char *data, int len):begin(data), cur(data),end(data+len) { }
-  explicit Slice(char *_begin, char *_end):begin(_begin), cur(_begin),end(_end) { }
-  explicit Slice(const Slice &s):begin(s.begin), cur(s.cur),end(s.end) { }
-
-  int Len() const
-  {
-    return end - begin;
+ public:
+  explicit Slice(char *data, int len)
+      : begin(data), cur(data), end(data + len) {}
+  explicit Slice(char *_begin, char *_end)
+      : begin(_begin), cur(_begin), end(_end) {}
+  explicit Slice(const Slice &s) : begin(s.begin), cur(s.cur), end(s.end) {}
+  // <data, len> is a block of parent slice
+  explicit Slice(const Slice &parent, char *data, int len)
+      : begin(data), cur(data), end(data + len) {
+    if (end > parent.end) end = parent.end;
   }
+  int Len() const { return end - begin; }
 
-  int Position() const
-  {
-    return cur - begin;
-  }
+  int Position() const { return cur - begin; }
 
-  int FreeSpace() const
-  {
-    return end - cur;
-  }
+  int FreeSpace() const { return end - cur; }
 
-  char * Reserve(int n)
-  {
+  char *Reserve(int n) {
     if (cur + n <= end) {
-      char * pre = cur;
+      char *pre = cur;
       cur += n;
       return pre;
     } else {
@@ -47,8 +40,7 @@ public:
     }
   }
 
-  char * Consume(int n)
-  {
+  char *Consume(int n) {
     if (cur + n <= end) {
       cur += n;
       return cur;
@@ -57,13 +49,9 @@ public:
     }
   }
 
-  bool Eof() const
-  {
-    return FreeSpace() <= 0;
-  }
+  bool Eof() const { return FreeSpace() <= 0; }
 
-  int PeekChar() const
-  {
+  int PeekChar() const {
     if (!Eof()) {
       return cur[0];
     } else {
@@ -71,8 +59,7 @@ public:
     }
   }
 
-  int ReadChar()
-  {
+  int ReadChar() {
     char *c = Reserve(1);
     if (c != NULL) {
       return *c;
@@ -81,8 +68,7 @@ public:
     }
   }
 
-  uint8_t ReadUint8(bool &eof_error)
-  {
+  uint8_t ReadUint8(bool &eof_error) {
     char *c = Reserve(sizeof(uint8_t));
     if (c != NULL) {
       return *(uint8_t *)(c);
@@ -92,8 +78,7 @@ public:
     }
   }
 
-  uint16_t ReadUint16(bool &eof_error)
-  {
+  uint16_t ReadUint16(bool &eof_error) {
     char *c = Reserve(sizeof(uint16_t));
     if (c != NULL) {
       return *(uint16_t *)(c);
@@ -103,8 +88,7 @@ public:
     }
   }
 
-  uint32_t ReadUint32(bool &eof_error)
-  {
+  uint32_t ReadUint32(bool &eof_error) {
     char *c = Reserve(sizeof(uint32_t));
     if (c != NULL) {
       return *(uint32_t *)(c);
@@ -114,8 +98,7 @@ public:
     }
   }
 
-  bool WriteUint32(uint32_t v)
-  {
+  bool WriteUint32(uint32_t v) {
     uint32_t *i = (uint32_t *)cur;
     cur += sizeof(uint32_t);
     if (cur <= end) {
@@ -126,8 +109,7 @@ public:
     }
   }
 
-  bool WriteBytes(char *s, int len)
-  {
+  bool WriteBytes(char *s, int len) {
     char *b = cur;
     cur += len;
     if (cur <= end) {
@@ -137,8 +119,7 @@ public:
       return false;
     }
   }
-
 };
 
-} // namespace ming
-#endif // SLICE_H_
+}  // namespace ming
+#endif  // SLICE_H_
