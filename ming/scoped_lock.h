@@ -6,24 +6,16 @@
 namespace ming {
 
 template <typename LockType>
-class ScopedLock : private noncopyable
-{
-public:
-  explicit ScopedLock(LockType& lock)
-    : lock_(lock)
-  {
-    lock_.Lock();
-  }
+class ScopedLock : private noncopyable {
+ public:
+  explicit ScopedLock(LockType& lock) : lock_(lock) { lock_.Lock(); }
 
-  ~ScopedLock()
-  {
-    lock_.Unlock();
-  }
+  ~ScopedLock() { lock_.Unlock(); }
 
-private:
-   LockType&   lock_;
+ private:
+  LockType& lock_;
 };
 
 }  // namespace ming
 
-#endif // MING_SCOPED_LOCK_H_
+#endif  // MING_SCOPED_LOCK_H_

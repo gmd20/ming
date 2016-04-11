@@ -1,10 +1,9 @@
-#include  "ming/log_stream.h"
+#include "ming/log_stream.h"
 
 #include <limits>
 #include <stdio.h>
 #include <stdint.h>
 #include <algorithm>
-
 
 namespace ming {
 
@@ -12,9 +11,8 @@ static const char digits[] = "9876543210123456789";
 static const char* zero = digits + 9;
 static const char digits_hex[] = "0123456789ABCDEF";
 
-template<typename T>
-int format_int(char buf[], T value)
-{
+template <typename T>
+int format_int(char buf[], T value) {
   T i = value;
   char* p = buf;
 
@@ -42,12 +40,10 @@ template int format_int(char buf[], int value);
 template int format_int(char buf[], unsigned int value);
 template int format_int(char buf[], long value);
 template int format_int(char buf[], unsigned long value);
-template int format_int(char buf[], long long  value);
+template int format_int(char buf[], long long value);
 template int format_int(char buf[], unsigned long long value);
 
-
-int format_pointer_hex(char buf[], void * value)
-{
+int format_pointer_hex(char buf[], void* value) {
   uintptr_t i = reinterpret_cast<uintptr_t>(value);
   char* p = buf;
   do {
@@ -62,10 +58,8 @@ int format_pointer_hex(char buf[], void * value)
   return p - buf;
 }
 
-int format_double(char buf[], double value)
-{
+int format_double(char buf[], double value) {
   return sprintf(buf, "%.12g", value);
 }
 
-
-} // namespace ming
+}  // namespace ming

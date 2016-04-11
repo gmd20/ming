@@ -7,35 +7,28 @@
 
 namespace ming {
 
-class Mutex : private noncopyable
-{
-public:
+class Mutex : private noncopyable {
+ public:
   typedef ming::ScopedLock<Mutex> ScopedLock;
 
-  Mutex()
-  {
-    ::pthread_mutex_init(&mutex_, 0);
+  Mutex() { ::pthread_mutex_init(&mutex_, 0); }
+
+  ~Mutex() {
+    ::pthread_mutex_destroy(&mutex_);  // Ignore EBUSY.
   }
 
-  ~Mutex()
-  {
-    ::pthread_mutex_destroy(&mutex_); // Ignore EBUSY.
+  void Lock() {
+    (void)::pthread_mutex_lock(&mutex_);  // Ignore EINVAL.
   }
 
-  void Lock()
-  {
-    (void)::pthread_mutex_lock(&mutex_); // Ignore EINVAL.
+  void Unlock() {
+    (void)::pthread_mutex_unlock(&mutex_);  // Ignore EINVAL.
   }
 
-  void Unlock()
-  {
-    (void)::pthread_mutex_unlock(&mutex_); // Ignore EINVAL.
-  }
-
-private:
+ private:
   ::pthread_mutex_t mutex_;
 };
 
-} // namespace ming
+}  // namespace ming
 
-#endif // MING_LINUX_MUTEX_H_
+#endif  // MING_LINUX_MUTEX_H_

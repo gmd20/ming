@@ -35,7 +35,7 @@ namespace folly {
  * ProducerConsumerQueue is a one producer and one consumer queue
  * without locks.
  */
-template<class T>
+template <class T>
 struct ProducerConsumerQueue : private boost::noncopyable {
   typedef T value_type;
 
@@ -45,11 +45,10 @@ struct ProducerConsumerQueue : private boost::noncopyable {
   // given time is actually (size-1), so if you start with an empty queue,
   // isFull() will return true after size-1 insertions.
   explicit ProducerConsumerQueue(uint32_t size)
-    : size_(size)
-    , records_(static_cast<T*>(std::malloc(sizeof(T) * size)))
-    , readIndex_(0)
-    , writeIndex_(0)
-  {
+      : size_(size),
+        records_(static_cast<T*>(std::malloc(sizeof(T) * size))),
+        readIndex_(0),
+        writeIndex_(0) {
     assert(size >= 2);
     if (!records_) {
       throw std::bad_alloc();
@@ -74,7 +73,7 @@ struct ProducerConsumerQueue : private boost::noncopyable {
     std::free(records_);
   }
 
-  template<class ...Args>
+  template <class... Args>
   bool write(Args&&... recordArgs) {
     auto const currentWrite = writeIndex_.load(std::memory_order_relaxed);
     auto nextRecord = currentWrite + 1;
@@ -134,8 +133,8 @@ struct ProducerConsumerQueue : private boost::noncopyable {
   }
 
   bool isEmpty() const {
-   return readIndex_.load(std::memory_order_consume) ==
-         writeIndex_.load(std::memory_order_consume);
+    return readIndex_.load(std::memory_order_consume) ==
+           writeIndex_.load(std::memory_order_consume);
   }
 
   bool isFull() const {
@@ -164,14 +163,13 @@ struct ProducerConsumerQueue : private boost::noncopyable {
     return ret;
   }
 
-private:
+ private:
   const uint32_t size_;
   T* const records_;
 
   std::atomic<int> readIndex_;
   std::atomic<int> writeIndex_;
 };
-
 }
 
 #endif

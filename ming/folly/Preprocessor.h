@@ -31,19 +31,19 @@
 #ifdef _MSC_VER
 
 #define VA_NARGS_IMPL(_1, _2, _3, _4, _5, N, ...) N
-#define VA_NARGS(...) VA_NARGS_IMPL(X,##__VA_ARGS__, 4, 3, 2, 1, 0)
+#define VA_NARGS(...) VA_NARGS_IMPL(X, ##__VA_ARGS__, 4, 3, 2, 1, 0)
 #define VARARG_IMPL2(base, count, ...) base##count(__VA_ARGS__)
 #define VARARG_IMPL(base, count, ...) VARARG_IMPL2(base, count, __VA_ARGS__)
 #define VARARG(base, ...) VARARG_IMPL(base, VA_NARGS(__VA_ARGS__), __VA_ARGS__)
 
-#define FB_ONE_OR_NONE0() /* */
+#define FB_ONE_OR_NONE0()  /* */
 #define FB_ONE_OR_NONE1(x) /* */
 #define FB_ONE_OR_NONE2(x, y) x
 #define FB_ONE_OR_NONE3(x, y, z) x
 #define FB_ONE_OR_NONE(...) VARARG(FB_ONE_OR_NONE, __VA_ARGS__)
 
 #else
-#define FB_ONE_OR_NONE(a, ...) FB_THIRD(a, ## __VA_ARGS__, a)
+#define FB_ONE_OR_NONE(a, ...) FB_THIRD(a, ##__VA_ARGS__, a)
 #define FB_THIRD(a, b, ...) __VA_ARGS__
 #endif
 
@@ -93,4 +93,4 @@
  */
 #define FB_STRINGIZE(x) #x
 
-#endif // FOLLY_PREPROCESSOR_
+#endif  // FOLLY_PREPROCESSOR_

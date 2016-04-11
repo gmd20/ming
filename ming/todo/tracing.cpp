@@ -4,22 +4,17 @@
 
 #include <string>
 
-
 struct Statistic {
-  unsigned int               counter;
-  std::vector <unsigned int> timer;
+  unsigned int counter;
+  std::vector<unsigned int> timer;
 };
 
-enum {
-  kDefaultFlushIntervals  = 10
-};
+enum { kDefaultFlushIntervals = 10 };
 
 std::vector<std::string> metrics_name;
-std::vector<Statistic>   statistics;
+std::vector<Statistic> statistics;
 
-
-unsigned int tracing_metric_id(const char *metric)
-{
+unsigned int tracing_metric_id(const char *metric) {
   int len = metrics_name.size();
   for (int i = 0; i < len; i++) {
     if (0 == strcmp(metrics_name[i].c_str(), metric)) {
@@ -30,49 +25,23 @@ unsigned int tracing_metric_id(const char *metric)
   return metrics_name.size();
 }
 
-void tracing_counter_inc(unsigned int metric_id)
-{
+void tracing_counter_inc(unsigned int metric_id) {}
 
-}
+void tracing_counter_dec(unsigned int metric_id) {}
 
-void tracing_counter_dec(unsigned int metric_id)
-{
+uint64_t tracing_timer_start() { return walltime::microseconds_since_epoch(); }
 
-}
-
-uint64_t tracing_timer_start()
-{
-  return walltime::microseconds_since_epoch();
-}
-
-void tracing_timer_stop(unsigned int metric_id, uint64_t start_time)
-{
-
-}
+void tracing_timer_stop(unsigned int metric_id, uint64_t start_time) {}
 
 //============================================================================
 
-
 //============================================================================
 
-bool tracing_thread_start()
-{
+bool tracing_thread_start() { return true; }
 
-  return true;
-}
+bool tracing_thread_stop() { return true; }
 
-bool tracing_thread_stop()
-{
+void tracing_init(const char *metric_name_prefix) {}
 
-  return true;
-}
-
-void tracing_init(const char *metric_name_prefix)
-{
-
-}
-
-void tracing_config(bool stat_enabled, bool status_report_enabled, bool span_enabled)
-{
-
-}
+void tracing_config(bool stat_enabled, bool status_report_enabled,
+                    bool span_enabled) {}

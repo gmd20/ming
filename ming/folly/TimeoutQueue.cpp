@@ -20,32 +20,27 @@
 
 namespace folly {
 
-TimeoutQueue::Id TimeoutQueue::add(
-  int64_t now,
-  int64_t delay,
-  Callback callback) {
+TimeoutQueue::Id TimeoutQueue::add(int64_t now, int64_t delay,
+                                   Callback callback) {
   Id id = nextId_++;
   timeouts_.insert({id, now + delay, -1, std::move(callback)});
   return id;
 }
 
-TimeoutQueue::Id TimeoutQueue::addRepeating(
-  int64_t now,
-  int64_t interval,
-  Callback callback) {
+TimeoutQueue::Id TimeoutQueue::addRepeating(int64_t now, int64_t interval,
+                                            Callback callback) {
   Id id = nextId_++;
   timeouts_.insert({id, now + interval, interval, std::move(callback)});
   return id;
 }
 
 int64_t TimeoutQueue::nextExpiration() const {
-  return (timeouts_.empty() ? std::numeric_limits<int64_t>::max() :
-          timeouts_.get<BY_EXPIRATION>().begin()->expiration);
+  return (timeouts_.empty()
+              ? std::numeric_limits<int64_t>::max()
+              : timeouts_.get<BY_EXPIRATION>().begin()->expiration);
 }
 
-bool TimeoutQueue::erase(Id id) {
-  return timeouts_.get<BY_ID>().erase(id);
-}
+bool TimeoutQueue::erase(Id id) { return timeouts_.get<BY_ID>().erase(id); }
 
 int64_t TimeoutQueue::runInternal(int64_t now, bool onceOnly) {
   auto& byExpiration = timeouts_.get<BY_EXPIRATION>();

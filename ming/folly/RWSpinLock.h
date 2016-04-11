@@ -108,14 +108,12 @@ pthread_rwlock_t Read        728698     24us       101ns     7.28ms     194us
 
 // detection for 64 bit
 #if defined(__x86_64__) || defined(_M_X64)
-# define FOLLY_X64 1
+#define FOLLY_X64 1
 #else
-# define FOLLY_X64 0
+#define FOLLY_X64 0
 #endif
 
-#if defined(__GNUC__) && \
-  (defined(__i386) || FOLLY_X64 || \
-   defined(ARCH_K8))
+#if defined(__GNUC__) && (defined(__i386) || FOLLY_X64 || defined(ARCH_K8))
 #define RW_SPINLOCK_USE_X86_INTRINSIC_
 #include <x86intrin.h>
 #else
@@ -157,6 +155,7 @@ namespace folly {
 // class RWSpinLock : boost::noncopyable {
 class RWSpinLock : ming::noncopyable {
   enum : int32_t { READER = 4, UPGRADED = 2, WRITER = 1 };
+
  public:
   RWSpinLock() : bits_(0) {}
 
@@ -182,9 +181,7 @@ class RWSpinLock : ming::noncopyable {
     }
   }
 
-  void unlock_shared() {
-    bits_.fetch_add(-READER, std::memory_order_release);
-  }
+  void unlock_shared() { bits_.fetch_add(-READER, std::memory_order_release); }
 
   // Downgrade the lock from writer status to reader status.
   void unlock_and_lock_shared() {
@@ -225,12 +222,11 @@ class RWSpinLock : ming::noncopyable {
     bits_.fetch_add(-WRITER, std::memory_order_release);
   }
 
-
   // Attempt to acquire writer permission. Return false if we didn't get it.
   bool try_lock() {
     int32_t expect = 0;
     return bits_.compare_exchange_strong(expect, WRITER,
-      std::memory_order_acq_rel);
+                                         std::memory_order_acq_rel);
   }
 
   // Try to get reader permission on the lock. This can fail if we
@@ -243,7 +239,7 @@ class RWSpinLock : ming::noncopyable {
     // fetch_add is considerably (100%) faster than compare_exchange,
     // so here we are optimizing for the common (lock success) case.
     int32_t value = bits_.fetch_add(READER, std::memory_order_acquire);
-    if (UNLIKELY(value & (WRITER|UPGRADED))) {
+    if (UNLIKELY(value & (WRITER | UPGRADED))) {
       bits_.fetch_add(-READER, std::memory_order_release);
       return false;
     }
@@ -254,7 +250,7 @@ class RWSpinLock : ming::noncopyable {
   bool try_unlock_upgrade_and_lock() {
     int32_t expect = UPGRADED;
     return bits_.compare_exchange_strong(expect, WRITER,
-        std::memory_order_acq_rel);
+                                         std::memory_order_acq_rel);
   }
 
   // try to acquire an upgradable lock.
@@ -309,7 +305,9 @@ class RWSpinLock : ming::noncopyable {
     ReadHolder(const ReadHolder& other) = delete;
     ReadHolder& operator=(const ReadHolder& other) = delete;
 
-    ~ReadHolder() { if (lock_) lock_->unlock_shared(); }
+    ~ReadHolder() {
+      if (lock_) lock_->unlock_shared();
+    }
 
     void reset(RWSpinLock* lock = nullptr) {
       if (lock == lock_) return;
@@ -318,9 +316,7 @@ class RWSpinLock : ming::noncopyable {
       if (lock_) lock_->lock_shared();
     }
 
-    void swap(ReadHolder* other) {
-      std::swap(lock_, other->lock_);
-    }
+    void swap(ReadHolder* other) { std::swap(lock_, other->lock_); }
 
    private:
     friend class UpgradedHolder;
@@ -348,16 +344,18 @@ class RWSpinLock : ming::noncopyable {
       other.lock_ = nullptr;
     }
 
-    UpgradedHolder& operator =(UpgradedHolder&& other) {
+    UpgradedHolder& operator=(UpgradedHolder&& other) {
       using std::swap;
       swap(lock_, other.lock_);
       return *this;
     }
 
     UpgradedHolder(const UpgradedHolder& other) = delete;
-    UpgradedHolder& operator =(const UpgradedHolder& other) = delete;
+    UpgradedHolder& operator=(const UpgradedHolder& other) = delete;
 
-    ~UpgradedHolder() { if (lock_) lock_->unlock_upgrade(); }
+    ~UpgradedHolder() {
+      if (lock_) lock_->unlock_upgrade();
+    }
 
     void reset(RWSpinLock* lock = nullptr) {
       if (lock == lock_) return;
@@ -383,9 +381,7 @@ class RWSpinLock : ming::noncopyable {
       if (lock_) lock_->lock();
     }
 
-    explicit WriteHolder(RWSpinLock& lock) : lock_(&lock) {
-      lock_->lock();
-    }
+    explicit WriteHolder(RWSpinLock& lock) : lock_(&lock) { lock_->lock(); }
 
     // promoted from an upgrade lock holder
     explicit WriteHolder(UpgradedHolder&& upgraded) {
@@ -398,16 +394,18 @@ class RWSpinLock : ming::noncopyable {
       other.lock_ = nullptr;
     }
 
-    WriteHolder& operator =(WriteHolder&& other) {
+    WriteHolder& operator=(WriteHolder&& other) {
       using std::swap;
       swap(lock_, other.lock_);
       return *this;
     }
 
     WriteHolder(const WriteHolder& other) = delete;
-    WriteHolder& operator =(const WriteHolder& other) = delete;
+    WriteHolder& operator=(const WriteHolder& other) = delete;
 
-    ~WriteHolder () { if (lock_) lock_->unlock(); }
+    ~WriteHolder() {
+      if (lock_) lock_->unlock();
+    }
 
     void reset(RWSpinLock* lock = nullptr) {
       if (lock == lock_) return;
@@ -437,14 +435,14 @@ class RWSpinLock : ming::noncopyable {
   std::atomic<int32_t> bits_;
 };
 
-
 #ifdef RW_SPINLOCK_USE_X86_INTRINSIC_
 // A more balanced Read-Write spin lock implemented based on GCC intrinsics.
 
 namespace detail {
-template <size_t kBitWidth> struct RWTicketIntTrait {
+template <size_t kBitWidth>
+struct RWTicketIntTrait {
   static_assert(kBitWidth == 32 || kBitWidth == 64,
-      "bit width has to be either 32 or 64 ");
+                "bit width has to be either 32 or 64 ");
 };
 
 template <>
@@ -460,9 +458,7 @@ struct RWTicketIntTrait<64> {
   static inline __m128i fromInteger(uint64_t from) {
     return _mm_cvtsi64_si128(from);
   }
-  static inline uint64_t toInteger(__m128i in) {
-    return _mm_cvtsi128_si64(in);
-  }
+  static inline uint64_t toInteger(__m128i in) { return _mm_cvtsi128_si64(in); }
   static inline uint64_t addParallel(__m128i in, __m128i kDelta) {
     return toInteger(_mm_add_epi16(in, kDelta));
   }
@@ -477,15 +473,13 @@ struct RWTicketIntTrait<32> {
 
 #ifdef __SSE2__
   static __m128i make128(const uint8_t v[4]) {
-    return _mm_set_epi8(0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, v[3], v[2], v[1], v[0]);
+    return _mm_set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, v[3], v[2], v[1],
+                        v[0]);
   }
   static inline __m128i fromInteger(uint32_t from) {
     return _mm_cvtsi32_si128(from);
   }
-  static inline uint32_t toInteger(__m128i in) {
-    return _mm_cvtsi128_si32(in);
-  }
+  static inline uint32_t toInteger(__m128i in) { return _mm_cvtsi128_si32(in); }
   static inline uint32_t addParallel(__m128i in, __m128i kDelta) {
     return toInteger(_mm_add_epi8(in, kDelta));
   }
@@ -493,15 +487,13 @@ struct RWTicketIntTrait<32> {
 };
 }  // detail
 
-
-template<size_t kBitWidth, bool kFavorWriter=false>
+template <size_t kBitWidth, bool kFavorWriter = false>
 // class RWTicketSpinLockT : boost::noncopyable {
 class RWTicketSpinLockT : ming::noncopyable {
   typedef detail::RWTicketIntTrait<kBitWidth> IntTraitType;
   typedef typename detail::RWTicketIntTrait<kBitWidth>::FullInt FullInt;
   typedef typename detail::RWTicketIntTrait<kBitWidth>::HalfInt HalfInt;
-  typedef typename detail::RWTicketIntTrait<kBitWidth>::QuarterInt
-    QuarterInt;
+  typedef typename detail::RWTicketIntTrait<kBitWidth>::QuarterInt QuarterInt;
 
   union RWTicket {
     FullInt whole;
@@ -513,24 +505,22 @@ class RWTicketSpinLockT : ming::noncopyable {
     };
   } ticket;
 
- private: // Some x64-specific utilities for atomic access to ticket.
-  template<class T> static T load_acquire(T* addr) {
-    T t = *addr; // acquire barrier
+ private:  // Some x64-specific utilities for atomic access to ticket.
+  template <class T>
+  static T load_acquire(T* addr) {
+    T t = *addr;  // acquire barrier
     asm volatile("" : : : "memory");
     return t;
   }
 
-  template<class T>
+  template <class T>
   static void store_release(T* addr, T v) {
     asm volatile("" : : : "memory");
-    *addr = v; // release barrier
+    *addr = v;  // release barrier
   }
 
  public:
-
-  RWTicketSpinLockT() {
-    store_release(&ticket.whole, FullInt(0));
-  }
+  RWTicketSpinLockT() { store_release(&ticket.whole, FullInt(0)); }
 
   void lock() {
     if (kFavorWriter) {
@@ -596,7 +586,8 @@ class RWTicketSpinLockT : ming::noncopyable {
     //
     // We don't worry about sched_yield() here because the caller
     // has already explicitly abandoned fairness.
-    while (!try_lock()) {}
+    while (!try_lock()) {
+    }
   }
 
   // Atomically unlock the write-lock from writer and acquire the read-lock.
@@ -612,7 +603,7 @@ class RWTicketSpinLockT : ming::noncopyable {
 
 #ifdef __SSE2__
     // SSE2 can reduce the lock and unlock overhead by 10%
-    static const QuarterInt kDeltaBuf[4] = { 1, 1, 0, 0 };   // write/read/user
+    static const QuarterInt kDeltaBuf[4] = {1, 1, 0, 0};  // write/read/user
     static const __m128i kDelta = IntTraitType::make128(kDeltaBuf);
     __m128i m = IntTraitType::fromInteger(old);
     t.whole = IntTraitType::addParallel(m, kDelta);
@@ -638,9 +629,9 @@ class RWTicketSpinLockT : ming::noncopyable {
     RWTicket t, old;
     old.whole = t.whole = load_acquire(&ticket.whole);
     old.users = old.read;
-#ifdef  __SSE2__
+#ifdef __SSE2__
     // SSE2 may reduce the total lock and unlock overhead by 10%
-    static const QuarterInt kDeltaBuf[4] = { 0, 1, 1, 0 };   // write/read/user
+    static const QuarterInt kDeltaBuf[4] = {0, 1, 1, 0};  // write/read/user
     static const __m128i kDelta = IntTraitType::make128(kDeltaBuf);
     __m128i m = IntTraitType::fromInteger(old.whole);
     t.whole = IntTraitType::addParallel(m, kDelta);
@@ -661,17 +652,16 @@ class RWTicketSpinLockT : ming::noncopyable {
   // class ReadHolder : boost::noncopyable {
   class ReadHolder : ming::noncopyable {
    public:
-    explicit ReadHolder(RWSpinLock *lock = nullptr) :
-      lock_(lock) {
+    explicit ReadHolder(RWSpinLock* lock = nullptr) : lock_(lock) {
       if (lock_) lock_->lock_shared();
     }
 
-    explicit ReadHolder(RWSpinLock &lock) : lock_ (&lock) {
+    explicit ReadHolder(RWSpinLock& lock) : lock_(&lock) {
       if (lock_) lock_->lock_shared();
     }
 
     // atomically unlock the write-lock from writer and acquire the read-lock
-    explicit ReadHolder(WriteHolder *writer) : lock_(nullptr) {
+    explicit ReadHolder(WriteHolder* writer) : lock_(nullptr) {
       std::swap(this->lock_, writer->lock_);
       if (lock_) {
         lock_->unlock_and_lock_shared();
@@ -682,27 +672,25 @@ class RWTicketSpinLockT : ming::noncopyable {
       if (lock_) lock_->unlock_shared();
     }
 
-    void reset(RWSpinLock *lock = nullptr) {
+    void reset(RWSpinLock* lock = nullptr) {
       if (lock_) lock_->unlock_shared();
       lock_ = lock;
       if (lock_) lock_->lock_shared();
     }
 
-    void swap(ReadHolder *other) {
-      std::swap(this->lock_, other->lock_);
-    }
+    void swap(ReadHolder* other) { std::swap(this->lock_, other->lock_); }
 
    private:
-    RWSpinLock *lock_;
+    RWSpinLock* lock_;
   };
 
   // class WriteHolder : boost::noncopyable {
   class WriteHolder : ming::noncopyable {
    public:
-    explicit WriteHolder(RWSpinLock *lock = nullptr) : lock_(lock) {
+    explicit WriteHolder(RWSpinLock* lock = nullptr) : lock_(lock) {
       if (lock_) lock_->lock();
     }
-    explicit WriteHolder(RWSpinLock &lock) : lock_ (&lock) {
+    explicit WriteHolder(RWSpinLock& lock) : lock_(&lock) {
       if (lock_) lock_->lock();
     }
 
@@ -710,40 +698,30 @@ class RWTicketSpinLockT : ming::noncopyable {
       if (lock_) lock_->unlock();
     }
 
-    void reset(RWSpinLock *lock = nullptr) {
+    void reset(RWSpinLock* lock = nullptr) {
       if (lock == lock_) return;
       if (lock_) lock_->unlock();
       lock_ = lock;
       if (lock_) lock_->lock();
     }
 
-    void swap(WriteHolder *other) {
-      std::swap(this->lock_, other->lock_);
-    }
+    void swap(WriteHolder* other) { std::swap(this->lock_, other->lock_); }
 
    private:
     friend class ReadHolder;
-    RWSpinLock *lock_;
+    RWSpinLock* lock_;
   };
 
   // Synchronized<> adaptors.
-  friend void acquireRead(RWTicketSpinLockT& mutex) {
-    mutex.lock_shared();
-  }
-  friend void acquireReadWrite(RWTicketSpinLockT& mutex) {
-    mutex.lock();
-  }
+  friend void acquireRead(RWTicketSpinLockT& mutex) { mutex.lock_shared(); }
+  friend void acquireReadWrite(RWTicketSpinLockT& mutex) { mutex.lock(); }
   friend bool acquireReadWrite(RWTicketSpinLockT& mutex,
                                unsigned int milliseconds) {
     mutex.lock();
     return true;
   }
-  friend void releaseRead(RWTicketSpinLockT& mutex) {
-    mutex.unlock_shared();
-  }
-  friend void releaseReadWrite(RWTicketSpinLockT& mutex) {
-    mutex.unlock();
-  }
+  friend void releaseRead(RWTicketSpinLockT& mutex) { mutex.unlock_shared(); }
+  friend void releaseReadWrite(RWTicketSpinLockT& mutex) { mutex.unlock(); }
 };
 
 typedef RWTicketSpinLockT<32> RWTicketSpinLock32;

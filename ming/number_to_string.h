@@ -1,7 +1,6 @@
 #ifndef MING_NUMBER_TO_STRING_H_
 #define MING_NUMBER_TO_STRING_H_
 
-
 #include <stdint.h>
 
 // --------------------------------------------------------------
@@ -21,9 +20,8 @@ int32_t u64toa(uint64_t value, char* buffer);
 int32_t i64toa(int64_t value, char* buffer);
 int32_t dtoa(double value, char* buffer);
 
-
 //-----------------------------------------------------------------------------
-//https://github.com/facebook/folly/blob/master/folly/Conv.h
+// https://github.com/facebook/folly/blob/master/folly/Conv.h
 //-----------------------------------------------------------------------------
 /*
  * Copyright 2015 Facebook, Inc.
@@ -40,7 +38,6 @@ int32_t dtoa(double value, char* buffer);
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 
 /**
  * Returns the number of digits in the base 10 representation of an
@@ -62,7 +59,6 @@ inline uint32_t digits10(uint64_t v) {
   }
 }
 
-
 /**
  * Copies the ASCII base 10 representation of v into buffer and
  * returns the number of bytes written. Does NOT append a \0. Assumes
@@ -76,7 +72,7 @@ inline uint32_t digits10(uint64_t v) {
  * because it does not add a terminating \0.
  */
 
-inline uint32_t uint64ToBufferUnsafe(uint64_t v, char *const buffer) {
+inline uint32_t uint64ToBufferUnsafe(uint64_t v, char* const buffer) {
   auto const result = digits10(v);
   // WARNING: using size_t or pointer arithmetic for pos slows down
   // the loop below 20x. This is because several 32-bit ops can be
@@ -94,7 +90,6 @@ inline uint32_t uint64ToBufferUnsafe(uint64_t v, char *const buffer) {
   buffer[pos] = static_cast<uint32_t>(v) + '0';
   return result;
 }
-
 
 //  使用的例子
 
@@ -154,15 +149,12 @@ inline uint32_t uint64ToBufferUnsafe(uint64_t v, char *const buffer) {
 //   return digits10(value);
 // }
 
-
-
-
-
 // /*
 //  * Lookup tables that converts from a decimal character value to an integral
 //  * binary value, shifted by a decimal "shift" multiplier.
 //  * For all character values in the range '0'..'9', the table at those
-//  * index locations returns the actual decimal value shifted by the multiplier.
+//  * index locations returns the actual decimal value shifted by the
+//  multiplier.
 //  * For all other values, the lookup table returns an invalid OOR value.
 //  */
 // // Out-of-range flag value, larger than the largest value that can fit in
@@ -363,7 +355,6 @@ inline uint32_t uint64ToBufferUnsafe(uint64_t v, char *const buffer) {
 //     return result;
 //   }
 
-
-} // namespace ming
+}  // namespace ming
 
 #endif  // MING_NUMBER_TO_STRING_H_

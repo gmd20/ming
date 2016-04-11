@@ -7,34 +7,20 @@
 
 namespace ming {
 
-class Mutex : private noncopyable
-{
-public:
+class Mutex : private noncopyable {
+ public:
   typedef ming::ScopedLock<Mutex> ScopedLock;
 
-  Mutex()
-  {
-    init();
-  }
+  Mutex() { init(); }
 
-  ~Mutex()
-  {
-    ::DeleteCriticalSection(&crit_section_);
-  }
+  ~Mutex() { ::DeleteCriticalSection(&crit_section_); }
 
-  void Lock()
-  {
-    ::EnterCriticalSection(&crit_section_);
-  }
+  void Lock() { ::EnterCriticalSection(&crit_section_); }
 
-  void Unlock()
-  {
-    ::LeaveCriticalSection(&crit_section_);
-  }
+  void Unlock() { ::LeaveCriticalSection(&crit_section_); }
 
-private:
-  int init()
-  {
+ private:
+  int init() {
     // if the critical section is unavailable, the calling thread spins
     // dwSpinCount times before performing a wait operation on a semaphore
     // associated with the critical section. If the critical section becomes
@@ -50,6 +36,6 @@ private:
   ::CRITICAL_SECTION crit_section_;
 };
 
-} // namespace ming
+}  // namespace ming
 
-#endif // MING_WIN_MUTEX_H_
+#endif  // MING_WIN_MUTEX_H_

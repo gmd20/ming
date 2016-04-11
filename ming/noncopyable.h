@@ -3,18 +3,18 @@
 
 namespace ming {
 
-class noncopyable
-{
-protected:
+class noncopyable {
+ protected:
   noncopyable() {}
   ~noncopyable() {}
-private:
+
+ private:
   noncopyable(const noncopyable&);
   const noncopyable& operator=(const noncopyable&);
 };
 
-} // namespace ming
+}  // namespace ming
 
 using ming::noncopyable;
 
-#endif // MING_HASH_H_
+#endif  // MING_HASH_H_
