@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Facebook, Inc.
+ * Copyright 2016 Facebook, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 // @author: Andrei Alexandrescu
 
-#ifndef FOLLY_PREPROCESSOR_
-#define FOLLY_PREPROCESSOR_
+#pragma once
 
 /**
  * Necessarily evil preprocessor-related amenities.
@@ -92,5 +91,3 @@
  * another macro expansion.
  */
 #define FB_STRINGIZE(x) #x
-
-#endif  // FOLLY_PREPROCESSOR_

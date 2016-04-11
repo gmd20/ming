@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Facebook, Inc.
+ * Copyright 2016 Facebook, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef FOLLY_SCOPEGUARD_H_
-#define FOLLY_SCOPEGUARD_H_
+#pragma once
 
 #include <cstddef>
 #include <functional>
 #include <new>
+#include <type_traits>
+#include <utility>
 
 #include <folly/Preprocessor.h>
 // #include <folly/detail/UncaughtExceptionCounter.h>
@@ -34,7 +35,7 @@ namespace folly {
  * The makeGuard() function is used to create a new ScopeGuard object.
  * It can be instantiated with a lambda function, a std::function<void()>,
  * a functor, or a void(*)() function pointer.
-
+ *
  *
  * Usage example: Add a friend to memory iff it is also added to the db.
  *
@@ -72,11 +73,15 @@ class ScopeGuardImplBase {
   void dismiss() noexcept { dismissed_ = true; }
 
  protected:
-  ScopeGuardImplBase() : dismissed_(false) {}
+  ScopeGuardImplBase() noexcept : dismissed_(false) {}
 
-  ScopeGuardImplBase(ScopeGuardImplBase&& other)
-      : dismissed_(other.dismissed_) {
-    other.dismissed_ = true;
+  static ScopeGuardImplBase makeEmptyScopeGuard() noexcept {
+    return ScopeGuardImplBase{};
+  }
+
+  template <typename T>
+  static const T& asConst(const T& t) noexcept {
+    return t;
   }
 
   bool dismissed_;
@@ -85,13 +90,37 @@ class ScopeGuardImplBase {
 template <typename FunctionType>
 class ScopeGuardImpl : public ScopeGuardImplBase {
  public:
-  explicit ScopeGuardImpl(const FunctionType& fn) : function_(fn) {}
+  explicit ScopeGuardImpl(FunctionType& fn) noexcept(
+      std::is_nothrow_copy_constructible<FunctionType>::value)
+      : ScopeGuardImpl(
+            asConst(fn),
+            makeFailsafe(std::is_nothrow_copy_constructible<FunctionType>{},
+                         &fn)) {}
 
-  explicit ScopeGuardImpl(FunctionType&& fn) : function_(std::move(fn)) {}
+  explicit ScopeGuardImpl(const FunctionType& fn) noexcept(
+      std::is_nothrow_copy_constructible<FunctionType>::value)
+      : ScopeGuardImpl(
+            fn, makeFailsafe(std::is_nothrow_copy_constructible<FunctionType>{},
+                             &fn)) {}
 
-  ScopeGuardImpl(ScopeGuardImpl&& other)
-      : ScopeGuardImplBase(std::move(other)),
-        function_(std::move(other.function_)) {}
+  explicit ScopeGuardImpl(FunctionType&& fn) noexcept(
+      std::is_nothrow_move_constructible<FunctionType>::value)
+      : ScopeGuardImpl(
+            std::move_if_noexcept(fn),
+            makeFailsafe(std::is_nothrow_move_constructible<FunctionType>{},
+                         &fn)) {}
+
+  ScopeGuardImpl(ScopeGuardImpl&& other) noexcept(
+      std::is_nothrow_move_constructible<FunctionType>::value)
+      : function_(std::move_if_noexcept(other.function_)) {
+    // If the above line attempts a copy and the copy throws, other is
+    // left owning the cleanup action and will execute it (or not) depending
+    // on the value of other.dismissed_. The following lines only execute
+    // if the move/copy succeeded, in which case *this assumes ownership of
+    // the cleanup action and dismisses other.
+    dismissed_ = other.dismissed_;
+    other.dismissed_ = true;
+  }
 
   ~ScopeGuardImpl() noexcept {
     if (!dismissed_) {
@@ -100,7 +129,23 @@ class ScopeGuardImpl : public ScopeGuardImplBase {
   }
 
  private:
-  void* operator new(size_t) = delete;
+  static ScopeGuardImplBase makeFailsafe(std::true_type, const void*) noexcept {
+    return makeEmptyScopeGuard();
+  }
+
+  template <typename Fn>
+  static auto makeFailsafe(std::false_type, Fn* fn) noexcept
+      -> ScopeGuardImpl<decltype(std::ref(*fn))> {
+    return ScopeGuardImpl<decltype(std::ref(*fn))>{std::ref(*fn)};
+  }
+
+  template <typename Fn>
+  explicit ScopeGuardImpl(Fn&& fn, ScopeGuardImplBase&& failsafe)
+      : ScopeGuardImplBase{}, function_(std::forward<Fn>(fn)) {
+    failsafe.dismiss();
+  }
+
+  void* operator new(std::size_t) = delete;
 
   void execute() noexcept { function_(); }
 
@@ -108,8 +153,10 @@ class ScopeGuardImpl : public ScopeGuardImplBase {
 };
 
 template <typename FunctionType>
-ScopeGuardImpl<typename std::decay<FunctionType>::type> makeGuard(
-    FunctionType&& fn) {
+ScopeGuardImpl<typename std::decay<FunctionType>::type>
+makeGuard(FunctionType&& fn) noexcept(
+    std::is_nothrow_constructible<typename std::decay<FunctionType>::type,
+                                  FunctionType>::value) {
   return ScopeGuardImpl<typename std::decay<FunctionType>::type>(
       std::forward<FunctionType>(fn));
 }
@@ -122,7 +169,8 @@ typedef ScopeGuardImplBase&& ScopeGuard;
 namespace detail {
 
 #if defined(FOLLY_EXCEPTION_COUNT_USE_CXA_GET_GLOBALS) || \
-    defined(FOLLY_EXCEPTION_COUNT_USE_GETPTD)
+    defined(FOLLY_EXCEPTION_COUNT_USE_GETPTD) ||          \
+    defined(FOLLY_EXCEPTION_COUNT_USE_STD)
 
 /**
  * ScopeGuard used for executing a function when leaving the current scope
@@ -135,32 +183,32 @@ namespace detail {
  *
  * Used to implement SCOPE_FAIL and SCOPE_SUCCES below.
  */
-template <typename FunctionType, bool executeOnException>
-class ScopeGuardForNewException {
- public:
-  explicit ScopeGuardForNewException(const FunctionType& fn) : function_(fn) {}
+// template <typename FunctionType, bool executeOnException>
+// class ScopeGuardForNewException {
+//  public:
+//   explicit ScopeGuardForNewException(const FunctionType& fn) : function_(fn) {}
 
-  explicit ScopeGuardForNewException(FunctionType&& fn)
-      : function_(std::move(fn)) {}
+//   explicit ScopeGuardForNewException(FunctionType&& fn)
+//       : function_(std::move(fn)) {}
 
-  ScopeGuardForNewException(ScopeGuardForNewException&& other)
-      : function_(std::move(other.function_)),
-        exceptionCounter_(std::move(other.exceptionCounter_)) {}
+//   ScopeGuardForNewException(ScopeGuardForNewException&& other)
+//       : function_(std::move(other.function_)),
+//         exceptionCounter_(std::move(other.exceptionCounter_)) {}
 
-  ~ScopeGuardForNewException() noexcept(executeOnException) {
-    if (executeOnException == exceptionCounter_.isNewUncaughtException()) {
-      function_();
-    }
-  }
+//   ~ScopeGuardForNewException() noexcept(executeOnException) {
+//     if (executeOnException == exceptionCounter_.isNewUncaughtException()) {
+//       function_();
+//     }
+//   }
 
- private:
-  ScopeGuardForNewException(const ScopeGuardForNewException& other) = delete;
+//  private:
+//   ScopeGuardForNewException(const ScopeGuardForNewException& other) = delete;
 
-  void* operator new(size_t) = delete;
+//   void* operator new(std::size_t) = delete;
 
-  FunctionType function_;
-  UncaughtExceptionCounter exceptionCounter_;
-};
+//   FunctionType function_;
+//   UncaughtExceptionCounter exceptionCounter_;
+// };
 
 /**
  * Internal use for the macro SCOPE_FAIL below
@@ -208,7 +256,8 @@ ScopeGuardImpl<typename std::decay<FunctionType>::type> operator+(
       ::folly::detail::ScopeGuardOnExit() + [&]() noexcept
 
 #if defined(FOLLY_EXCEPTION_COUNT_USE_CXA_GET_GLOBALS) || \
-    defined(FOLLY_EXCEPTION_COUNT_USE_GETPTD)
+    defined(FOLLY_EXCEPTION_COUNT_USE_GETPTD) ||          \
+    defined(FOLLY_EXCEPTION_COUNT_USE_STD)
 #define SCOPE_FAIL                               \
   auto FB_ANONYMOUS_VARIABLE(SCOPE_FAIL_STATE) = \
       ::folly::detail::ScopeGuardOnFail() + [&]() noexcept
@@ -217,5 +266,3 @@ ScopeGuardImpl<typename std::decay<FunctionType>::type> operator+(
   auto FB_ANONYMOUS_VARIABLE(SCOPE_SUCCESS_STATE) = \
       ::folly::detail::ScopeGuardOnSuccess() + [&]()
 #endif  // native uncaught_exception() supported
-
-#endif  // FOLLY_SCOPEGUARD_H_
