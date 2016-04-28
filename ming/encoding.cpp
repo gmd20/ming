@@ -1136,28 +1136,34 @@ int UTF16LEToUTF8(unsigned char *out, int *outlen, const unsigned char *inb,
       c = c | (((unsigned int)*tmp) << 8);
       in++;
     }
-    if ((c & 0xFC00) == 0xD800) { /* surrogates */
+    if ((c & 0xFC00) == 0xD800) { /* high surrogates */
       if (in >= inend) {          /* (in > inend) shouldn't happens */
-        break;
-      }
-      if (xmlLittleEndian) {
-        d = *in++;
+        /* break; */
+        c = 0xfffd; /* output a 'question mark' represents an unknown character
+                       */
       } else {
-        tmp = (unsigned char *)in;
-        d = *tmp++;
-        d = d | (((unsigned int)*tmp) << 8);
-        in++;
+        if (xmlLittleEndian) {
+          d = *in++;
+        } else {
+          tmp = (unsigned char *)in;
+          d = *tmp++;
+          d = d | (((unsigned int)*tmp) << 8);
+          in++;
+        }
+        if ((d & 0xFC00) == 0xDC00) { /* low surrogates*/
+          c &= 0x03FF;
+          c <<= 10;
+          c |= d & 0x03FF;
+          c += 0x10000;
+        } else {
+          *outlen = out - outstart;
+          *inlenb = processed - inb;
+          return (-2);
+        }
       }
-      if ((d & 0xFC00) == 0xDC00) {
-        c &= 0x03FF;
-        c <<= 10;
-        c |= d & 0x03FF;
-        c += 0x10000;
-      } else {
-        *outlen = out - outstart;
-        *inlenb = processed - inb;
-        return (-2);
-      }
+    } else if ((c & 0xFC00) ==
+               0xDC00) { /* the first is low surrogates, shouldn't happens*/
+      c = 0xfffd; /* output a 'question mark' represents an unknown character */
     }
 
     /* assertion: c is a single UTF-4 value */
@@ -1448,31 +1454,39 @@ int UTF16BEToUTF8(unsigned char *out, int *outlen, const unsigned char *inb,
     } else {
       c = *in++;
     }
-    if ((c & 0xFC00) == 0xD800) { /* surrogates */
+    if ((c & 0xFC00) == 0xD800) { /* high surrogates */
       if (in >= inend) {          /* (in > inend) shouldn't happens */
+        /*
         *outlen = out - outstart;
         *inlenb = processed - inb;
         return (-2);
-      }
-      if (xmlLittleEndian) {
-        tmp = (unsigned char *)in;
-        d = *tmp++;
-        d = d << 8;
-        d = d | (unsigned int)*tmp;
-        in++;
+        */
+        c = 0xfffd; /* output a 'question mark' represents an unknown character
+                       */
       } else {
-        d = *in++;
+        if (xmlLittleEndian) {
+          tmp = (unsigned char *)in;
+          d = *tmp++;
+          d = d << 8;
+          d = d | (unsigned int)*tmp;
+          in++;
+        } else {
+          d = *in++;
+        }
+        if ((d & 0xFC00) == 0xDC00) { /* low surrogates */
+          c &= 0x03FF;
+          c <<= 10;
+          c |= d & 0x03FF;
+          c += 0x10000;
+        } else {
+          *outlen = out - outstart;
+          *inlenb = processed - inb;
+          return (-2);
+        }
       }
-      if ((d & 0xFC00) == 0xDC00) {
-        c &= 0x03FF;
-        c <<= 10;
-        c |= d & 0x03FF;
-        c += 0x10000;
-      } else {
-        *outlen = out - outstart;
-        *inlenb = processed - inb;
-        return (-2);
-      }
+    } else if ((c & 0xFC00) ==
+               0xDC00) { /* the first is low surrogates, shouldn't happens*/
+      c = 0xfffd; /* output a 'question mark' represents an unknown character */
     }
 
     /* assertion: c is a single UTF-4 value */
