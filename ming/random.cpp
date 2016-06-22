@@ -2,6 +2,7 @@
 // http://v8project.blogspot.de/2015/12/theres-mathrandom-and-then-theres.html
 // http://vigna.di.unimi.it/ftp/papers/xorshiftplus.pdf  Further scramblings of Marsaglia’s xorshift generators
 
+#include<stdint.h>
 
 uint64_t state0 = 1;
 uint64_t state1 = 2;

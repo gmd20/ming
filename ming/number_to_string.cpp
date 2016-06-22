@@ -21,6 +21,8 @@
    */
 
 #include "number_to_string.h"
+#include <string.h>
+#include <algorithm>
 
 // --------------------------------------------------------------------------
 // https://github.com/miloyip/itoa-benchmark/blob/master/src/branchlut.cpp
@@ -680,7 +682,7 @@ inline int Prettify(char* buffer, int length, int k) {
     memmove(&buffer[2], &buffer[1], length - 1);
     buffer[1] = '.';
     buffer[length + 1] = 'e';
-    return legnth + 2 + WriteExponent(kk - 1, &buffer[0 + length + 2]);
+    return length + 2 + WriteExponent(kk - 1, &buffer[0 + length + 2]);
   }
 }
 

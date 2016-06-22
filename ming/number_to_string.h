@@ -2,6 +2,7 @@
 #define MING_NUMBER_TO_STRING_H_
 
 #include <stdint.h>
+#include "ming/folly/Likely.h"
 
 // --------------------------------------------------------------
 // ËµÃ÷£º
