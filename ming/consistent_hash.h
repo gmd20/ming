@@ -39,58 +39,89 @@ inline int32_t jump_consistent_hash(uint64_t key, int32_t num_buckets) {
 // https://github.com/ioriiod0/consistent_hash/blob/master/consistent_hash_map.hpp
 //-----------------------------------------------------------------------------
 
-// A larger VIRTUAL_NODE_REPLICA_FACTOR produces a fairer key distribution, but
-// cause the more memory and the searching is slower.
-template <uint32_t VIRTUAL_NODE_REPLICA_FACTOR = 10>
+// A larger virtualNodeReplicaFactor produces a fairer key distribution, but
+// use more memory and the searching is slower.
 class ConsistentHashRing {
  public:
-  void AddNode(const std::string& node) {
-    std::string virtual_node;
-    for (uint32_t r = 0; r < replicas_; r++) {
-      NodeHash n;
-      n.node = node;
-      virtual_node = node;
-      virtual_node += std::to_string(r);
-      murmurhash3_x86_32(virtual_node.c_str(), virtual_node.length(), 0, &n.hash);
-      ring_.insert(std::upper_bound(ring_.begin(), ring.end(), n, NodeHashLess),
-                   n);
-    }
+  ConsistentHashRing()
+      : virtualNodeReplicaFactor_(10) {}
+  ConsistentHashRing(uint32_t virtualNodeReplicaFactor)
+      : virtualNodeReplicaFactor_(virtualNodeReplicaFactor) {}
+
+   void AddNode(const std::string &node) {
+     std::vector<std::string>::iterator it;
+     it = std::lower_bound(nodes_.begin(), nodes_.end(), node);
+     if (it == nodes_.end() || *it != node) {
+       std::string virtual_node;
+       for (uint32_t r = 0; r < virtualNodeReplicaFactor_; r++) {
+         VirtualNode n;
+         n.node = node;
+         virtual_node = node;
+         virtual_node += std::to_string(r);
+         murmurhash3_x86_32(virtual_node.c_str(), virtual_node.length(), 0,
+                            &n.hash);
+         ring_.insert(
+             std::lower_bound(ring_.begin(), ring_.end(), n, VirtualNodeLess), n);
+       }
+
+       nodes_.insert(it, node);
+     }
   }
   void RemoveNode(const std::string& node) {
-    std::string virtual_node;
-    for (unsigned int r = 0; r < replicas_; r++) {
-      NodeHash n;
-      std::string virtual_node = node;
-      virtual_node += std::to_string(r);
-      murmurhash3_x86_32(virtual_node.c_str(), virtual_node.length(), 0, &n.hash);
-      std::vector<NodeHash>::iterator low;
-      low = std::lower_bound(ring_.begin(), ring_.end(), n, NodeHashLess);
-      if (low != ring_.end() && low.hash == n.hash) {
-        ring_.erase(low);
+    std::vector<std::string>::iterator it;
+    it = std::lower_bound(nodes_.begin(), nodes_.end(), node);
+    if (it != nodes_.end() && *it == node) {
+      std::string virtual_node;
+      for (unsigned int r = 0; r < virtualNodeReplicaFactor_; r++) {
+        VirtualNode n;
+        std::string virtual_node = node;
+        virtual_node += std::to_string(r);
+        murmurhash3_x86_32(virtual_node.c_str(), virtual_node.length(), 0,
+                           &n.hash);
+        std::vector<VirtualNode>::iterator low;
+        low = std::lower_bound(ring_.begin(), ring_.end(), n, VirtualNodeLess);
+        while (low != ring_.end() && low->hash == n.hash) {
+          if (low->node == node) {
+            ring_.erase(low);
+          }
+          ++low;
+        }
       }
+
+      nodes_.erase(it);
     }
   }
-  const std::string& GetNode(const std::string& request) const {
-    NodeHash n;
+  // GetNode reture the node that the request should be sent to
+  const std::string &GetNode(const std::string &request) const {
+    VirtualNode n;
     murmurhash3_x86_32(request.c_str(), request.length(), 0, &n.hash);
-    std::vector<NodeHash>::iterator low;
-    low = std::lower_bound(ring_.begin(), ring_.end(), n, NodeHashLess);
+    std::vector<VirtualNode>::const_iterator low;
+    low = std::lower_bound(ring_.begin(), ring_.end(), n, VirtualNodeLess);
     if (low == ring_.end()) {
       low = ring_.begin();
     }
-	return low->node;
+    return low->node;
+  }
+  std::vector<std::string> & GetNodeList() {
+    return nodes_;
+  }
+  bool IsNodeActive(const std::string & node) {
+     return std::binary_search(nodes_.begin(), nodes_.end(), node);
   }
 
  private:
-  struct NodeHash {
+  struct VirtualNode {
     uint32_t hash;
     std::string node;  // store a uint32_t node_id of external node_list may reduce the memory usage.
   };
   struct {
-    bool operator()(NodeHash& a, NodeHash& b) { return a.hash < b.hash; }
-  } NodeHashLess;
-  std::vector<NodeHash> ring_;
+    bool operator()(const VirtualNode &a, const VirtualNode &b) { return a.hash < b.hash; }
+  } VirtualNodeLess;
+  uint32_t virtualNodeReplicaFactor_;
+  std::vector<VirtualNode> ring_;
+  std::vector<std::string> nodes_;
 };
+
 
 }  // namespace ming
 
