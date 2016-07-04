@@ -48,7 +48,7 @@ class ConsistentHashRing {
   ConsistentHashRing(uint32_t virtualNodeReplicaFactor)
       : virtualNodeReplicaFactor_(virtualNodeReplicaFactor) {}
 
-   void AddNode(const std::string &node) {
+   void AddNode(const std::string node) {
      std::vector<std::string>::iterator it;
      it = std::lower_bound(nodes_.begin(), nodes_.end(), node);
      if (it == nodes_.end() || *it != node) {
@@ -67,14 +67,14 @@ class ConsistentHashRing {
        nodes_.insert(it, node);
      }
   }
-  void RemoveNode(const std::string& node) {
+  void RemoveNode(const std::string node) {
     std::vector<std::string>::iterator it;
     it = std::lower_bound(nodes_.begin(), nodes_.end(), node);
     if (it != nodes_.end() && *it == node) {
       std::string virtual_node;
       for (unsigned int r = 0; r < virtualNodeReplicaFactor_; r++) {
         VirtualNode n;
-        std::string virtual_node = node;
+        virtual_node = node;
         virtual_node += std::to_string(r);
         murmurhash3_x86_32(virtual_node.c_str(), virtual_node.length(), 0,
                            &n.hash);
@@ -92,7 +92,7 @@ class ConsistentHashRing {
     }
   }
   // GetNode reture the node that the request should be sent to
-  const std::string &GetNode(const std::string &request) const {
+  const std::string GetNode(const std::string &request) const {
     VirtualNode n;
     murmurhash3_x86_32(request.c_str(), request.length(), 0, &n.hash);
     std::vector<VirtualNode>::const_iterator low;
