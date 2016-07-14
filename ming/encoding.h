@@ -26,8 +26,7 @@ int ucs2le_to_utf8(char *outb, int *outlen, const char *in, int *inlen);
 int gsm_to_utf8(char *dest, int *dest_len, const char *src, int *src_len);
 int utf8_to_gsm(char *dest, int *dest_len, const char *src, int *src_len);
 
-
-size_t charset_convert(const char *to_charset, const char *from_charset,
+int charset_convert(const char *to_charset, const char *from_charset,
                        char **inbuf, size_t *inbytesleft, char **outbuf,
                        size_t *outbytesleft);
 }  // namespace encoding

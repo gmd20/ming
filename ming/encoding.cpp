@@ -1518,7 +1518,7 @@ int UTF16BEToUTF8(unsigned char *out, int *outlen, const unsigned char *inb,
 }
 
 
-size_t charset_convert(const char *to_charset, const char *from_charset,
+int charset_convert(const char *to_charset, const char *from_charset,
                        char **inbuf, size_t *inbytesleft, char **outbuf,
                        size_t *outbytesleft) {
   size_t buf_len = *outbytesleft;
@@ -1537,7 +1537,7 @@ size_t charset_convert(const char *to_charset, const char *from_charset,
   }
   iconv_close(cd);
 
-  return (buf_len - *outbytesleft);
+  return (int)(buf_len - *outbytesleft);
 }
 
 }  // namespace encoding
