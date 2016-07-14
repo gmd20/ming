@@ -1,5 +1,6 @@
 ﻿#include "encoding.h"
-
+#include <iconv.h>
+#include <errno.h>
 #include <iomanip>
 
 #if _MSC_VER < 1600
@@ -1514,6 +1515,29 @@ int UTF16BEToUTF8(unsigned char *out, int *outlen, const unsigned char *inb,
   *outlen = out - outstart;
   *inlenb = processed - inb;
   return (*outlen);
+}
+
+
+size_t charset_convert(const char *to_charset, const char *from_charset,
+                       char **inbuf, size_t *inbytesleft, char **outbuf,
+                       size_t *outbytesleft) {
+  size_t buf_len = *outbytesleft;
+  iconv_t cd = iconv_open(to_charset, from_charset);
+  if (cd == (iconv_t)-1) {
+    LOG_ERROR("charset is not supportedi. Failed to convert charset from "
+              << from_charset << " to " << to_charset);
+    return -1;
+  }
+  size_t num_nonreversible_or_error = iconv(cd, inbuf, inbytesleft, outbuf, outbytesleft);
+  if (num_nonreversible_or_error < 0 || *inbytesleft != 0) {
+    LOG_ERROR("Failed to convert charset from "
+                  << from_charset << " to " << to_charset << ". inbytesleft="
+                  << *inbytesleft << ", outbytesleft=" << *outbytesleft
+              << ", iconv() return errno=" << errno);
+  }
+  iconv_close(cd);
+
+  return (buf_len - *outbytesleft);
 }
 
 }  // namespace encoding
