@@ -1524,7 +1524,7 @@ size_t charset_convert(const char *to_charset, const char *from_charset,
   size_t buf_len = *outbytesleft;
   iconv_t cd = iconv_open(to_charset, from_charset);
   if (cd == (iconv_t)-1) {
-    LOG_ERROR("charset is not supportedi. Failed to convert charset from "
+    LOG_ERROR("charset is not supported. Failed to convert charset from "
               << from_charset << " to " << to_charset);
     return -1;
   }
