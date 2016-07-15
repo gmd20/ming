@@ -1524,18 +1524,19 @@ int charset_convert(const char *to_charset, const char *from_charset,
   size_t buf_len = *outbytesleft;
   iconv_t cd = iconv_open(to_charset, from_charset);
   if (cd == (iconv_t)-1) {
-    LOG_ERROR("charset is not supported. Failed to convert charset from "
-              << from_charset << " to " << to_charset);
+    // LOG_ERROR("charset is not supported. Failed to convert charset from "
+    //           << from_charset << " to " << to_charset);
     return -1;
   }
   size_t num_nonreversible_or_error = iconv(cd, inbuf, inbytesleft, outbuf, outbytesleft);
-  if (num_nonreversible_or_error < 0 || *inbytesleft != 0) {
-    LOG_ERROR("Failed to convert charset from "
-                  << from_charset << " to " << to_charset << ". inbytesleft="
-                  << *inbytesleft << ", outbytesleft=" << *outbytesleft
-              << ", iconv() return errno=" << errno);
-  }
   iconv_close(cd);
+  if (num_nonreversible_or_error < 0 || *inbytesleft != 0) {
+    // LOG_ERROR("Failed to convert charset from "
+    //               << from_charset << " to " << to_charset << ". inbytesleft="
+    //               << *inbytesleft << ", outbytesleft=" << *outbytesleft
+    //           << ", iconv() return errno=" << errno);
+    return -1;
+  }
 
   return (int)(buf_len - *outbytesleft);
 }
