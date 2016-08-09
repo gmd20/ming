@@ -1,5 +1,5 @@
-#ifndef FLOW_CONTRL_
-#define FLOW_CONTRL_
+#ifndef MING_FLOW_CONTROL_
+#define MING_FLOW_CONTROL_
 #include "ming/time.h"
 
 namespace ming {
@@ -98,4 +98,4 @@ class FlowControl {
 
 }  // namespace ming
 
-#endif  // FLOW_CONTRL_
+#endif  // MING_FLOW_CONTROL_

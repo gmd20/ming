@@ -25,7 +25,7 @@ namespace ming {
 // Wiki mention a O(log n) implementation:
 // https://en.wikipedia.org/wiki/Rendezvous_hashing
 //-----------------------------------------------------------------------------
-int hrw_hash(const std::vector<std::string>& nodes, const std::string &key) {
+inline int hrw_hash(const std::vector<std::string>& nodes, const std::string &key) {
   int n = nodes.size();
 
   uint32_t score = 0;
@@ -169,6 +169,14 @@ class ConsistentHashRing {
   std::vector<NodeType *> nodes_;
 };
 typedef ConsistentHashRing<std::string> HashRing;
+
+
+//----------------------------------------------------------------------------
+// Maglev hashing:
+// Maglev: A Fast and Reliable Software Network Load Balancer
+// http://static.googleusercontent.com/media/research.google.com/zh-CN//pubs/archive/44824.pdf
+// https://github.com/kkdai/maglev/blob/master/maglev.go
+//----------------------------------------------------------------------------
 
 }  // namespace ming
 

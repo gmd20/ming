@@ -1,5 +1,5 @@
-#ifndef MING_NONCOPYABLE_H_
-#define MING_NONCOPYABLE_H_
+#ifndef MING_HASH_H_
+#define MING_HASH_H_
 
 #include <stdint.h>
 #include <stddef.h>
@@ -681,4 +681,4 @@ XXH_PUBLIC_API XXH64_hash_t XXH64_hashFromCanonical(const XXH64_canonical_t* src
 
 
 
-#endif  // MING_NONCOPYABLE_H_
+#endif  // MING_HASH_H_
