@@ -130,6 +130,8 @@ int escape(int mode, char *s, int s_len, char *escapsed_s, int escaped_len) {
   }
 
   if (space_count == 0 && hex_count == 0) {
+    memcpy(escaped_s, s, s_len);
+    escaped_s[s_len] = '\0';
     return s_len;
   }
 
