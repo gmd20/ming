@@ -110,7 +110,7 @@ int shouldEscape(char c, int mode ) {
   return 1;
 }
 
-int escape(int mode, char *s, int s_len, char *escapsed_s, int escaped_len) {
+int escape(int mode, char *s, int s_len, char *escaped_s, int escaped_len) {
   int space_count = 0;
   int hex_count = 0;
   int i;
@@ -141,7 +141,7 @@ int escape(int mode, char *s, int s_len, char *escapsed_s, int escaped_len) {
   }
 
   j = 0;
-  t = escapsed_s;
+  t = escaped_s;
   for (i = 0; i < s_len; i++) {
     c = s[i];
     if (c == ' ' && mode == kEncodeQueryComponent) {
