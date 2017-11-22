@@ -18,7 +18,7 @@ const char kHexChar[] = "0123456789ABCDEF";
 // reserved characters correctly. See golang.org/issue/5684.
 int shouldEscape(char c, int mode ) {
   // §2.3 Unreserved characters (alphanum)
-  if ('A' <= c && c <= 'Z' || 'a' <= c && c <= 'z' || '0' <= c && c <= '9') {
+  if (('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z') || ('0' <= c && c <= '9')) {
     return 0;
   }
 
