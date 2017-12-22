@@ -12,6 +12,7 @@ const uint64_t NSEC_PER_SEC = 1000000000;
 const uint64_t NSEC_PER_MSEC = 1000000;
 const uint64_t NSEC_PER_USEC = 1000;
 const uint64_t MSEC_PER_SEC = 1000;
+const uint64_t USEC_PER_MSEC = 1000;
 const uint64_t USEC_PER_SEC = 1000000;
 const uint64_t EPOCH = 0x19DB1DED53E8000;
 const uint64_t NSEC100_PER_SEC = (NSEC_PER_SEC / 100);
