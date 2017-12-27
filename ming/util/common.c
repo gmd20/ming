@@ -1,26 +1,4 @@
 
-int format_small_int(char *s, uint32_t i)
-{
-  char *begin = s;
-  if (i >= 1000) {
-    *s++ = '0' + i / 1000;
-    i = i % 1000;
-  }
-
-  if (i >= 100) {
-    *s++ = '0' + i / 100;
-    i = i % 100;
-  }
-  if (i >= 10) {
-    *s++ = '0' +  i / 10;
-    i = i % 10;
-  }
-  *s++ = '0' + i;
-
-  *s = '\0';
-  return s - begin;
-}
-
 int format_small_int_padding(char *s, uint32_t i)
 {
   char *begin = s;
