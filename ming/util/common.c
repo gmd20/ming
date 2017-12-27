@@ -30,7 +30,7 @@ void string_append_timestamp(std::string &s, uint64_t epoch_millisecond)
 
   if (last_time != t) {
     last_t = t;
-    format_small_int_padding(timestamp, timeinfo->tm_year + 1970);
+    format_small_int_padding(timestamp, timeinfo->tm_year + 1900);
     timestamp[4] = '-';
     format_small_int_padding(&timestamp[5], timeinfo->tm_mon + 1);
     timestamp[7] = '-';
