@@ -50,3 +50,22 @@ void string_append_timestamp(std::string &s, uint64_t epoch_millisecond)
   timestamp[22] = '0' + i % 10;
   s.append(timestamp, 23);
 }
+
+
+#include <sys/file.h>
+#include <errno.h>
+
+
+int is_duplicate_instance()
+{
+	char filename[128];
+
+	int pid_file = open("/var/run/test_test.pid", O_CREAT | O_RDWR, 0666);
+	int rc = flock(pid_file, LOCK_EX | LOCK_NB);
+	if(rc) {
+		if(EWOULDBLOCK == errno)
+			 return 1;
+	}
+	return 0;
+}
+
