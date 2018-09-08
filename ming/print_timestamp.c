@@ -24,8 +24,10 @@ void print_timestamp()
 		timestamp[20] = '0' + a;
 		timestamp[21] = '0' + b;
 		timestamp[22] = '0' + c;
-		timestamp[23] = '\0';
+                timestamp[23] = ' ';
+                timestamp[24] = '\0';
+
 		last_timestamp = tv.tv_sec;
 	}
-	puts(timestamp);
+	fputs(timestamp, stdout);
 }
