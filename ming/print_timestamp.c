@@ -16,18 +16,17 @@ void print_timestamp()
 	if (last_timestamp != timestamp) {
 		now = localtime(&tv.tv_sec);
 		strftime(timestamp, 32, "%Y-%m-%d %H:%M:%S.", now);
-		miliseconds = (unsigned int)(tv.tv_usec/1000);
-		a = miliseconds/100;
-		b = miliseconds % 100;
-		c = b % 10;
-		b = b / 10;
-		timestamp[20] = '0' + a;
-		timestamp[21] = '0' + b;
-		timestamp[22] = '0' + c;
-                timestamp[23] = ' ';
-                timestamp[24] = '\0';
-
 		last_timestamp = tv.tv_sec;
 	}
+	miliseconds = (unsigned int)(tv.tv_usec/1000);
+	a = miliseconds/100;
+	b = miliseconds % 100;
+	c = b % 10;
+	b = b / 10;
+	timestamp[20] = '0' + a;
+	timestamp[21] = '0' + b;
+	timestamp[22] = '0' + c;
+	timestamp[23] = ' ';
+	timestamp[24] = '\0';	
 	fputs(timestamp, stdout);
 }
