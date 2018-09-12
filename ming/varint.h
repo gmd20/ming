@@ -1,6 +1,8 @@
 // protocol-buffer varint and zigzag https://developers.google.com/protocol-buffers/docs/encoding
 // https://github.com/powturbo/TurboPFor
 // https://github.com/ot/partitioned_elias_fano
+// https://github.com/lemire/FastPFor
+// keyword:  varint, zigzag, elias fano, Run-length encoding (RLE), FastPFor, Index Compression Using 64-Bit Words: Simple-8b 
 
 
 
