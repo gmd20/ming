@@ -2,6 +2,7 @@
 // https://github.com/powturbo/TurboPFor
 // https://github.com/ot/partitioned_elias_fano
 // https://github.com/lemire/FastPFor
+// https://github.com/jwilder/encoding/simple8b
 // Gorilla: A Fast, Scalable, In-Memory Time Series Database http://www.vldb.org/pvldb/vol8/p1816-teller.pdf
 // keyword:  varint, zigzag, elias fano, Run-length encoding (RLE), FastPFor, Index Compression Using 64-Bit Words: Simple-8b 
 
