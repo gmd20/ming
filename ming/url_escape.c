@@ -149,8 +149,8 @@ int escape(int mode, char *s, int s_len, char *escaped_s, int escaped_len) {
       j++;
     } else if (shouldEscape(c, mode)) {
       t[j] = '%';
-      t[j+1] = kHexChar[c>>4];
-      t[j+2] = kHexChar[c&15];
+      t[j+1] = kHexChar[((unsigned char)(c))>>4];
+      t[j+2] = kHexChar[((unsigned char)(c))&15];
       j += 3;
     } else {
       t[j] = s[i];
