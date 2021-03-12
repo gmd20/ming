@@ -10,12 +10,26 @@ inline int exec(const char* cmd, std::string &result) {
   result.resize(0);
   std::array<char, 512> buffer;
 
-  FILE *pipe =popen(cmd, "r");
+  FILE *pipe = popen(cmd, "r");
   if (!pipe) {
     return -1;
   }
   while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
     result += buffer.data();
+  }
+
+  return pclose(pipe);
+}
+
+inline int exec_parse_line(const char* cmd, void (*handler)(const char*)) {
+  std::array<char, 512> buffer;
+
+  FILE *pipe = popen(cmd, "r");
+  if (!pipe) {
+    return -1;
+  }
+  while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+    handler(buffer.data());
   }
 
   return pclose(pipe);
