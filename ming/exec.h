@@ -6,7 +6,7 @@
 #include <array>
 
 namespace ming {
-inline int exec(const char* cmd, std::string &result) {
+static inline int exec(const char* cmd, std::string &result) {
   result.resize(0);
   std::array<char, 512> buffer;
 
@@ -21,7 +21,7 @@ inline int exec(const char* cmd, std::string &result) {
   return pclose(pipe);
 }
 
-inline int exec_parse_line(const char* cmd, void (*handler)(const char*, void *), void *data) {
+static inline int exec_parse_line(const char* cmd, void (*handler)(const char*, void *), void *data) {
   char buffer[512];
 
   FILE *pipe = popen(cmd, "r");
